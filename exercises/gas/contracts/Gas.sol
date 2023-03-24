@@ -99,37 +99,32 @@ contract GasContract is Ownable, Constants {
         contractOwner = msg.sender;
         totalSupply = _totalSupply;
 
-        for (uint256 ii = 0; ii < administrators.length; ii++) {
-            if (_admins[ii] != address(0)) {
-                administrators[ii] = _admins[ii];
-                if (_admins[ii] == contractOwner) {
+        for (uint256 i = 0; i < administrators.length; i++) {
+            if (_admins[i] != address(0)) {
+                administrators[i] = _admins[i];
+                if (_admins[i] == contractOwner) {
                     balances[contractOwner] = totalSupply;
+                    emit supplyChanged(_admins[i], totalSupply);
                 } else {
-                    balances[_admins[ii]] = 0;
+                    balances[_admins[i]] = 0;
+                    emit supplyChanged(_admins[i], 0);
                 }
-                if (_admins[ii] == contractOwner) {
-                    emit supplyChanged(_admins[ii], totalSupply);
-                } else if (_admins[ii] != contractOwner) {
-                    emit supplyChanged(_admins[ii], 0);
-                }
+                
             }
         }
     }
 
 
     function checkForAdmin(address _user) public view returns (bool admin_) {
-        bool admin = false;
-        for (uint256 ii = 0; ii < administrators.length; ii++) {
-            if (administrators[ii] == _user) {
-                admin = true;
+        for (uint256 i = 0; i < administrators.length; i++) {
+            if (administrators[i] == _user) {
+                return true;
             }
         }
-        return admin;
     }
 
     function balanceOf(address _user) public view returns (uint256 balance_) {
-        uint256 balance = balances[_user];
-        return balance;
+        return balances[_user];
     }
 
     function getTradingMode() public view returns (bool mode_) {
@@ -165,7 +160,7 @@ contract GasContract is Ownable, Constants {
     function transfer(
         address _recipient,
         uint256 _amount,
-        string calldata _name
+        string memory _name
     ) public returns (bool status_) {
         address senderOfTx = msg.sender;
         require(
@@ -188,11 +183,8 @@ contract GasContract is Ownable, Constants {
         payment.recipientName = _name;
         payment.paymentID = ++paymentCounter;
         payments[senderOfTx].push(payment);
-        bool[] memory status = new bool[](tradePercent);
-        for (uint256 i = 0; i < tradePercent; i++) {
-            status[i] = true;
-        }
-        return (status[0] == true);
+
+        return (true);
     }
 
     function updatePayment(
@@ -216,19 +208,19 @@ contract GasContract is Ownable, Constants {
 
         address senderOfTx = msg.sender;
 
-        for (uint256 ii = 0; ii < payments[_user].length; ii++) {
-            if (payments[_user][ii].paymentID == _ID) {
-                payments[_user][ii].adminUpdated = true;
-                payments[_user][ii].admin = _user;
-                payments[_user][ii].paymentType = _type;
-                payments[_user][ii].amount = _amount;
+        for (uint256 i = 0; i < payments[_user].length; i++) {
+            if (payments[_user][i].paymentID == _ID) {
+                payments[_user][i].adminUpdated = true;
+                payments[_user][i].admin = _user;
+                payments[_user][i].paymentType = _type;
+                payments[_user][i].amount = _amount;
                 bool tradingMode = getTradingMode();
                 addHistory(_user, tradingMode);
                 emit PaymentUpdated(
                     senderOfTx,
                     _ID,
                     _amount,
-                    payments[_user][ii].recipientName
+                    payments[_user][i].recipientName
                 );
             }
         }

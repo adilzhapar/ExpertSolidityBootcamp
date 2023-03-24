@@ -10,7 +10,11 @@
     - in the `checkIfWhiteListed()` we do not have to check `require(senderOfTx == sender)`
     - simplify `getTradingMode()`
 4. optimize `onlyAdminOrOwner()` modifier (12.6 %)
-5.  
+5. changed `ii` to `i` (12.5 %)
+6. optimizied if clause in constructor (no change)
+7. deleted extra variable in `checkForAdmin()` (no change)
+8. deleted unnecesary status function in `transfer()` (12.3 %)
+9.   
 
 
 
