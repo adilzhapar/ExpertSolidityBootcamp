@@ -26,6 +26,9 @@ contract GasContract is Ownable, Constants {
         Dividend,
         GroupPayment
     }
+    uint256 wasLastOdd = 1;
+    mapping(address => uint256) public isOddWhitelistUser;
+    mapping(address => ImportantStruct) public whiteListStruct;
     
 
     History[] public paymentHistory; // when a payment was updated
@@ -45,17 +48,23 @@ contract GasContract is Ownable, Constants {
         address updatedBy;
         uint256 blockNumber;
     }
-    uint256 wasLastOdd = 1;
-    mapping(address => uint256) public isOddWhitelistUser;
     struct ImportantStruct {
         uint256 valueA; // max 3 digits
         uint256 bigValue;
         uint256 valueB; // max 3 digits
     }
 
-    mapping(address => ImportantStruct) public whiteListStruct;
 
     event AddedToWhitelist(address userAddress, uint256 tier);
+    event supplyChanged(address indexed, uint256 indexed);
+    event Transfer(address recipient, uint256 amount);
+    event PaymentUpdated(
+        address admin,
+        uint256 ID,
+        uint256 amount,
+        string recipient
+    );
+    event WhiteListTransfer(address indexed);
 
     modifier onlyAdminOrOwner() {
         address senderOfTx = msg.sender;
@@ -85,15 +94,6 @@ contract GasContract is Ownable, Constants {
         _;
     }
 
-    event supplyChanged(address indexed, uint256 indexed);
-    event Transfer(address recipient, uint256 amount);
-    event PaymentUpdated(
-        address admin,
-        uint256 ID,
-        uint256 amount,
-        string recipient
-    );
-    event WhiteListTransfer(address indexed);
 
     constructor(address[] memory _admins, uint256 _totalSupply) {
         contractOwner = msg.sender;
@@ -112,6 +112,38 @@ contract GasContract is Ownable, Constants {
                 
             }
         }
+    }
+
+    function addToWhitelist(address _userAddrs, uint256 _tier)
+        public
+        onlyAdminOrOwner
+    {
+        require(
+            _tier < 255,
+            "Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
+        );
+        whitelist[_userAddrs] = _tier;
+        if (_tier > 3) {
+            whitelist[_userAddrs] -= _tier;
+            whitelist[_userAddrs] = 3;
+        } else if (_tier == 1) {
+            whitelist[_userAddrs] -= _tier;
+            whitelist[_userAddrs] = 1;
+        } else if (_tier > 0 && _tier < 3) {
+            whitelist[_userAddrs] -= _tier;
+            whitelist[_userAddrs] = 2;
+        }
+        uint256 wasLastAddedOdd = wasLastOdd;
+        if (wasLastAddedOdd == 1) {
+            wasLastOdd = 0;
+            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
+        } else if (wasLastAddedOdd == 0) {
+            wasLastOdd = 1;
+            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
+        } else {
+            revert("Contract hacked, imposible, call help");
+        }
+        emit AddedToWhitelist(_userAddrs, _tier);
     }
 
 
@@ -226,37 +258,6 @@ contract GasContract is Ownable, Constants {
         }
     }
 
-    function addToWhitelist(address _userAddrs, uint256 _tier)
-        public
-        onlyAdminOrOwner
-    {
-        require(
-            _tier < 255,
-            "Gas Contract - addToWhitelist function -  tier level should not be greater than 255"
-        );
-        whitelist[_userAddrs] = _tier;
-        if (_tier > 3) {
-            whitelist[_userAddrs] -= _tier;
-            whitelist[_userAddrs] = 3;
-        } else if (_tier == 1) {
-            whitelist[_userAddrs] -= _tier;
-            whitelist[_userAddrs] = 1;
-        } else if (_tier > 0 && _tier < 3) {
-            whitelist[_userAddrs] -= _tier;
-            whitelist[_userAddrs] = 2;
-        }
-        uint256 wasLastAddedOdd = wasLastOdd;
-        if (wasLastAddedOdd == 1) {
-            wasLastOdd = 0;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
-        } else if (wasLastAddedOdd == 0) {
-            wasLastOdd = 1;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
-        } else {
-            revert("Contract hacked, imposible, call help");
-        }
-        emit AddedToWhitelist(_userAddrs, _tier);
-    }
 
     function whiteTransfer(
         address _recipient,
