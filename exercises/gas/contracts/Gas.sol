@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.0;
+pragma solidity ^0.8.18;
 
 import "./Ownable.sol";
 
 contract Constants {
-    uint256 public tradeFlag = 1;
-    uint256 public basicFlag = 0;
-    uint256 public dividendFlag = 1;
+    uint8 public tradeFlag = 1;
+    uint8 public dividendFlag = 1;
 }
 
 contract GasContract is Ownable, Constants {
@@ -27,7 +26,7 @@ contract GasContract is Ownable, Constants {
         Dividend,
         GroupPayment
     }
-    PaymentType constant defaultPayment = PaymentType.Unknown;
+    
 
     History[] public paymentHistory; // when a payment was updated
 
@@ -60,27 +59,20 @@ contract GasContract is Ownable, Constants {
 
     modifier onlyAdminOrOwner() {
         address senderOfTx = msg.sender;
-        if (checkForAdmin(senderOfTx)) {
-            require(
-                checkForAdmin(senderOfTx),
-                "Gas Contract Only Admin Check-  Caller not admin"
-            );
-            _;
-        } else if (senderOfTx == contractOwner) {
-            _;
-        } else {
+        bool isAdmin = checkForAdmin(senderOfTx);
+
+        if(!isAdmin && senderOfTx != contractOwner){
             revert(
                 "Error in Gas contract - onlyAdminOrOwner modifier : revert happened because the originator of the transaction was not the admin, and furthermore he wasn't the owner of the contract, so he cannot run this function"
+
             );
+        }else{
+            _;
         }
     }
 
     modifier checkIfWhiteListed(address sender) {
         address senderOfTx = msg.sender;
-        require(
-            senderOfTx == sender,
-            "Gas Contract CheckIfWhiteListed modifier : revert happened because the originator of the transaction was not the sender"
-        );
         uint256 usersTier = whitelist[senderOfTx];
         require(
             usersTier > 0,
@@ -124,13 +116,6 @@ contract GasContract is Ownable, Constants {
         }
     }
 
-    function getPaymentHistory()
-        public
-        payable
-        returns (History[] memory paymentHistory_)
-    {
-        return paymentHistory;
-    }
 
     function checkForAdmin(address _user) public view returns (bool admin_) {
         bool admin = false;
@@ -148,13 +133,7 @@ contract GasContract is Ownable, Constants {
     }
 
     function getTradingMode() public view returns (bool mode_) {
-        bool mode = false;
-        if (tradeFlag == 1 || dividendFlag == 1) {
-            mode = true;
-        } else {
-            mode = false;
-        }
-        return mode;
+        return tradeFlag == 1 || dividendFlag == 1;
     }
 
     function addHistory(address _updateAddress, bool _tradeMode)
@@ -166,11 +145,9 @@ contract GasContract is Ownable, Constants {
         history.lastUpdate = block.timestamp;
         history.updatedBy = _updateAddress;
         paymentHistory.push(history);
-        bool[] memory status = new bool[](tradePercent);
-        for (uint256 i = 0; i < tradePercent; i++) {
-            status[i] = true;
-        }
-        return ((status[0] == true), _tradeMode);
+
+        return (true, _tradeMode);
+
     }
 
     function getPayments(address _user)

@@ -1,3 +1,20 @@
+## Optimisations from Group 6
+### initial perecentage: 15.5 %
+1. Change compiler version to the latest (15.3 %)
+2. Removed (14.6 %):
+    - `basicFlag` && changed boolean variables from uint256 to uint8
+    - `defaultPayment()` 
+    - `getPaymentHistory()`
+3. Simplify the code(14.2 %):
+    - remove second `checkForAdmin(senderOfTx)`, and store function call in variable
+    - in the `checkIfWhiteListed()` we do not have to check `require(senderOfTx == sender)`
+    - simplify `getTradingMode()`
+4. optimize `onlyAdminOrOwner()` modifier (12.6 %)
+5.  
+
+
+
+
 # Optimisation Game Instructions
 
 1. Open a terminal go to the Gas directory
