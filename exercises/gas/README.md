@@ -14,7 +14,10 @@
 6. optimizied if clause in constructor (no change)
 7. deleted extra variable in `checkForAdmin()` (no change)
 8. deleted unnecesary status function in `transfer()` (12.3 %)
-9.   
+9. deleted unnecesary code in `addToWhitelist()` (12 %)
+10.  We do not need history (11.5 %)
+11. do not need `require` in `getPayments()` (11.2 %)
+
 
 
 
